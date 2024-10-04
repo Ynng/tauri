@@ -198,6 +198,7 @@ pub(crate) fn send_user_message<T: UserEvent>(
   context: &Context<T>,
   message: Message<T>,
 ) -> Result<()> {
+  println!("send_user_message with message {:?}", message);
   if current_thread().id() == context.main_thread_id {
     handle_user_message(
       &context.main_thread.window_target,
@@ -1219,6 +1220,101 @@ pub enum WindowMessage {
   RequestRedraw,
 }
 
+impl fmt::Debug for WindowMessage {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    match self {
+      Self::AddEventListener(id, _) => write!(f, "AddEventListener({:?})", id),
+      Self::ScaleFactor(_) => write!(f, "ScaleFactor"),
+      Self::InnerPosition(_) => write!(f, "InnerPosition"),
+      Self::OuterPosition(_) => write!(f, "OuterPosition"),
+      Self::InnerSize(_) => write!(f, "InnerSize"),
+      Self::OuterSize(_) => write!(f, "OuterSize"),
+      Self::IsFullscreen(_) => write!(f, "IsFullscreen"),
+      Self::IsMinimized(_) => write!(f, "IsMinimized"),
+      Self::IsMaximized(_) => write!(f, "IsMaximized"),
+      Self::IsFocused(_) => write!(f, "IsFocused"),
+      Self::IsDecorated(_) => write!(f, "IsDecorated"),
+      Self::IsResizable(_) => write!(f, "IsResizable"),
+      Self::IsMaximizable(_) => write!(f, "IsMaximizable"),
+      Self::IsMinimizable(_) => write!(f, "IsMinimizable"),
+      Self::IsClosable(_) => write!(f, "IsClosable"),
+      Self::IsVisible(_) => write!(f, "IsVisible"),
+      Self::Title(_) => write!(f, "Title"),
+      Self::CurrentMonitor(_) => write!(f, "CurrentMonitor"),
+      Self::PrimaryMonitor(_) => write!(f, "PrimaryMonitor"),
+      Self::MonitorFromPoint(_, point) => write!(f, "MonitorFromPoint({:?})", point),
+      Self::AvailableMonitors(_) => write!(f, "AvailableMonitors"),
+      #[cfg(any(
+        target_os = "linux",
+        target_os = "dragonfly",
+        target_os = "freebsd",
+        target_os = "netbsd",
+        target_os = "openbsd"
+      ))]
+      Self::GtkWindow(_) => write!(f, "GtkWindow"),
+      #[cfg(any(
+        target_os = "linux",
+        target_os = "dragonfly",
+        target_os = "freebsd",
+        target_os = "netbsd",
+        target_os = "openbsd"
+      ))]
+      Self::GtkBox(_) => write!(f, "GtkBox"),
+      Self::RawWindowHandle(_) => write!(f, "RawWindowHandle"),
+      Self::Theme(_) => write!(f, "Theme"),
+      Self::IsEnabled(_) => write!(f, "IsEnabled"),
+      Self::Center => write!(f, "Center"),
+      Self::RequestUserAttention(_) => write!(f, "RequestUserAttention"),
+      Self::SetEnabled(enabled) => write!(f, "SetEnabled({:?})", enabled),
+      Self::SetResizable(resizable) => write!(f, "SetResizable({:?})", resizable),
+      Self::SetMaximizable(maximizable) => write!(f, "SetMaximizable({:?})", maximizable),
+      Self::SetMinimizable(minimizable) => write!(f, "SetMinimizable({:?})", minimizable),
+      Self::SetClosable(closable) => write!(f, "SetClosable({:?})", closable),
+      Self::SetTitle(title) => write!(f, "SetTitle({:?})", title),
+      Self::Maximize => write!(f, "Maximize"),
+      Self::Unmaximize => write!(f, "Unmaximize"),
+      Self::Minimize => write!(f, "Minimize"),
+      Self::Unminimize => write!(f, "Unminimize"),
+      Self::Show => write!(f, "Show"),
+      Self::Hide => write!(f, "Hide"),
+      Self::Close => write!(f, "Close"),
+      Self::Destroy => write!(f, "Destroy"),
+      Self::SetDecorations(decorations) => write!(f, "SetDecorations({:?})", decorations),
+      Self::SetShadow(enable) => write!(f, "SetShadow({:?})", enable),
+      Self::SetAlwaysOnBottom(always_on_bottom) => {
+        write!(f, "SetAlwaysOnBottom({:?})", always_on_bottom)
+      }
+      Self::SetAlwaysOnTop(always_on_top) => write!(f, "SetAlwaysOnTop({:?})", always_on_top),
+      Self::SetVisibleOnAllWorkspaces(visible_on_all_workspaces) => write!(
+        f,
+        "SetVisibleOnAllWorkspaces({:?})",
+        visible_on_all_workspaces
+      ),
+      Self::SetContentProtected(protected) => write!(f, "SetContentProtected({:?})", protected),
+      Self::SetSize(size) => write!(f, "SetSize({:?})", size),
+      Self::SetMinSize(min_size) => write!(f, "SetMinSize({:?})", min_size),
+      Self::SetMaxSize(max_size) => write!(f, "SetMaxSize({:?})", max_size),
+      Self::SetSizeConstraints(constraints) => write!(f, "SetSizeConstraints({:?})", constraints),
+      Self::SetPosition(position) => write!(f, "SetPosition({:?})", position),
+      Self::SetFullscreen(fullscreen) => write!(f, "SetFullscreen({:?})", fullscreen),
+      Self::SetFocus => write!(f, "SetFocus"),
+      Self::SetIcon(icon) => write!(f, "SetIcon({:?})", icon),
+      Self::SetSkipTaskbar(skip) => write!(f, "SetSkipTaskbar({:?})", skip),
+      Self::SetCursorGrab(enabled) => write!(f, "SetCursorGrab({:?})", enabled),
+      Self::SetCursorVisible(visible) => write!(f, "SetCursorVisible({:?})", visible),
+      Self::SetCursorIcon(icon) => write!(f, "SetCursorIcon({:?})", icon),
+      Self::SetCursorPosition(position) => write!(f, "SetCursorPosition({:?})", position),
+      Self::SetIgnoreCursorEvents(ignore) => write!(f, "SetIgnoreCursorEvents({:?})", ignore),
+      Self::SetProgressBar(state) => write!(f, "SetProgressBar({:?})", state),
+      Self::SetTitleBarStyle(style) => write!(f, "SetTitleBarStyle({:?})", style),
+      Self::SetTheme(theme) => write!(f, "SetTheme({:?})", theme),
+      Self::DragWindow => write!(f, "DragWindow"),
+      Self::ResizeDragWindow(direction) => write!(f, "ResizeDragWindow({:?})", direction),
+      Self::RequestRedraw => write!(f, "RequestRedraw"),
+    }
+  }
+}
+
 #[derive(Debug, Clone)]
 pub enum SynthesizedWindowEvent {
   Focused(bool),
@@ -1271,6 +1367,44 @@ pub enum WebviewMessage {
   IsDevToolsOpen(Sender<bool>),
 }
 
+impl fmt::Debug for WebviewMessage {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    match self {
+      Self::AddEventListener(id, _) => write!(f, "AddEventListener({:?})", id),
+      #[cfg(not(all(feature = "tracing", not(target_os = "android"))))]
+      Self::EvaluateScript(script) => write!(f, "EvaluateScript({})", script),
+      #[cfg(all(feature = "tracing", not(target_os = "android")))]
+      Self::EvaluateScript(script, _, _) => write!(f, "EvaluateScript({})", script),
+      Self::WebviewEvent(event) => write!(f, "WebviewEvent({:?})", event),
+      Self::SynthesizedWindowEvent(event) => write!(f, "SynthesizedWindowEvent({:?})", event),
+      Self::Navigate(url) => write!(f, "Navigate({})", url),
+      Self::Print => write!(f, "Print"),
+      Self::Close => write!(f, "Close"),
+      Self::Show => write!(f, "Show"),
+      Self::Hide => write!(f, "Hide"),
+      Self::SetPosition(position) => write!(f, "SetPosition({:?})", position),
+      Self::SetSize(size) => write!(f, "SetSize({:?})", size),
+      Self::SetBounds(bounds) => write!(f, "SetBounds({:?})", bounds),
+      Self::SetFocus => write!(f, "SetFocus"),
+      Self::Reparent(window_id, _) => write!(f, "Reparent({:?})", window_id),
+      Self::SetAutoResize(auto_resize) => write!(f, "SetAutoResize({:?})", auto_resize),
+      Self::SetZoom(zoom) => write!(f, "SetZoom({:?})", zoom),
+      Self::ClearAllBrowsingData => write!(f, "ClearAllBrowsingData"),
+      Self::Url(_) => write!(f, "Url"),
+      Self::Bounds(_) => write!(f, "Bounds"),
+      Self::Position(_) => write!(f, "Position"),
+      Self::Size(_) => write!(f, "Size"),
+      Self::WithWebview(_) => write!(f, "WithWebview"),
+      #[cfg(any(debug_assertions, feature = "devtools"))]
+      Self::OpenDevTools => write!(f, "OpenDevTools"),
+      #[cfg(any(debug_assertions, feature = "devtools"))]
+      Self::CloseDevTools => write!(f, "CloseDevTools"),
+      #[cfg(any(debug_assertions, feature = "devtools"))]
+      Self::IsDevToolsOpen(_) => write!(f, "IsDevToolsOpen"),
+    }
+  }
+}
+
 pub type CreateWindowClosure<T> =
   Box<dyn FnOnce(&EventLoopWindowTarget<Message<T>>) -> Result<WindowWrapper> + Send>;
 
@@ -1293,6 +1427,26 @@ pub enum Message<T: 'static> {
     Sender<Result<Weak<Window>>>,
   ),
   UserEvent(T),
+}
+
+// want to print message for debugging
+impl<T: 'static> fmt::Debug for Message<T> {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    match self {
+      Self::Task(_) => write!(f, "Task"),
+      #[cfg(target_os = "macos")]
+      Self::SetActivationPolicy(policy) => write!(f, "SetActivationPolicy({:?})", policy),
+      Self::RequestExit(code) => write!(f, "RequestExit({})", code),
+      #[cfg(target_os = "macos")]
+      Self::Application(msg) => write!(f, "Application({:?})", msg),
+      Self::Window(id, msg) => write!(f, "Window({:?}, {:?})", id, msg),
+      Self::Webview(window_id, webview_id, msg) => write!(f, "Webview({:?}, {}, {:?})", window_id, webview_id, msg),
+      Self::CreateWebview(window_id, _) => write!(f, "CreateWebview({:?})", window_id),
+      Self::CreateWindow(window_id, _) => write!(f, "CreateWindow({:?})", window_id),
+      Self::CreateRawWindow(window_id, _, _) => write!(f, "CreateRawWindow({:?})", window_id),
+      Self::UserEvent(_) => write!(f, "UserEvent(?)"),
+    }
+  }
 }
 
 impl<T: UserEvent> Clone for Message<T> {
