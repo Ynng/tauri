@@ -4,9 +4,13 @@
 
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use std::env;
+
 use tauri::WebviewWindowBuilder;
 
 fn main() {
+  env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
+
   tauri::Builder::default()
     .setup(|app| {
       WebviewWindowBuilder::new(app, "Third", tauri::WebviewUrl::default())
