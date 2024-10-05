@@ -65,6 +65,8 @@ impl<'de> Deserialize<'de> for WebviewLabel {
   }
 }
 
+static mut NUM_CALLED: i32 = 0;
+
 #[command(root = "crate")]
 pub fn listen<R: Runtime>(
   webview: Webview<R>,
@@ -72,8 +74,15 @@ pub fn listen<R: Runtime>(
   target: EventTarget,
   handler: CallbackFn,
 ) -> Result<EventId> {
-  if(event.0 == "message" && webview.label() == "Main") {
-    panic!("setting up {} listener for {}", event.0, webview.label());
+  if (event.0 == "message" && webview.label() == "Main") {
+    unsafe {
+      NUM_CALLED += 1;
+      if (NUM_CALLED == 3) {
+        println!("setting up {} listener for {}", event.0, webview.label());
+      }else {
+        println!("setting up {} listener for {}", event.0, webview.label());
+      }
+    }
   }
   webview.listen_js(&event, target, handler)
 }

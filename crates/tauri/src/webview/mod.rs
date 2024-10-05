@@ -1138,6 +1138,7 @@ fn main() {
 
   /// Handles this window receiving an [`InvokeRequest`].
   pub fn on_message(self, request: InvokeRequest, responder: Box<OwnedInvokeResponder<R>>) {
+    println!("on_message called for {}", self.label());
     let manager = self.manager_owned();
     let is_local = self.is_local_url(&request.url);
 

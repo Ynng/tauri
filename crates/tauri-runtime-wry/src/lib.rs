@@ -4369,24 +4369,26 @@ fn create_webview<T: UserEvent>(
   for (scheme, protocol) in uri_scheme_protocols {
     // on Linux the custom protocols are associated with the web context
     // and you cannot register a scheme more than once
-    if cfg!(any(
-      target_os = "linux",
-      target_os = "dragonfly",
-      target_os = "freebsd",
-      target_os = "netbsd",
-      target_os = "openbsd"
-    )) {
-      if web_context.registered_custom_protocols.contains(&scheme) {
-        continue;
-      }
+    // if cfg!(any(
+    //   target_os = "linux",
+    //   target_os = "dragonfly",
+    //   target_os = "freebsd",
+    //   target_os = "netbsd",
+    //   target_os = "openbsd"
+    // )) {
+    //   if web_context.registered_custom_protocols.contains(&scheme) {
+    //     continue;
+    //   }
 
-      web_context
-        .registered_custom_protocols
-        .insert(scheme.clone());
-    }
+    //   web_context
+    //     .registered_custom_protocols
+    //     .insert(scheme.clone());
+    // }
+
+    println!("registering custom protocol: {} for {}", scheme, label);
 
     webview_builder =
-      webview_builder.with_asynchronous_custom_protocol(scheme, move |request, responder| {
+      webview_builder.with_asynchronous_custom_protocol(scheme, move |request, responder: wry::RequestAsyncResponder| {
         protocol(
           request,
           Box::new(move |response| responder.respond(response)),

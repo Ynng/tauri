@@ -36,6 +36,8 @@ pub fn message_handler<R: Runtime>(
 }
 
 pub fn get<R: Runtime>(manager: Arc<AppManager<R>>, label: String) -> UriSchemeProtocolHandler {
+  println!("got protocol handler called for label: {}", label);
+
   Box::new(move |request, responder| {
     #[cfg(feature = "tracing")]
     let span = tracing::trace_span!(
@@ -58,6 +60,8 @@ pub fn get<R: Runtime>(manager: Arc<AppManager<R>>, label: String) -> UriSchemeP
       );
       responder.respond(response);
     };
+
+  println!("protocol handler called for label: {}", label);
 
     match *request.method() {
       Method::POST => {
