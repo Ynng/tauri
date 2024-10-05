@@ -142,7 +142,7 @@ pub struct WebContext {
   pub registered_custom_protocols: HashSet<String>,
 }
 
-pub type WebContextStore = Arc<Mutex<HashMap<Option<PathBuf>, WebContext>>>;
+pub type WebContextStore = Arc<Mutex<HashMap<Option<PathBuf>, WryWebContext>>>;
 // window
 pub type WindowEventHandler = Box<dyn Fn(&WindowEvent) + Send>;
 pub type WindowEventListeners = Arc<Mutex<HashMap<WindowEventId, WindowEventHandler>>>;
@@ -230,6 +230,7 @@ pub struct Context<T: UserEvent> {
   next_webview_id: Arc<AtomicU32>,
   next_window_event_id: Arc<AtomicU32>,
   next_webview_event_id: Arc<AtomicU32>,
+  next_webcontext_id: Arc<AtomicU32>,
 }
 
 impl<T: UserEvent> Context<T> {
@@ -258,6 +259,10 @@ impl<T: UserEvent> Context<T> {
 
   fn next_webview_event_id(&self) -> u32 {
     self.next_webview_event_id.fetch_add(1, Ordering::Relaxed)
+  }
+
+  fn next_webcontext_id(&self) -> u32 {
+    self.next_webcontext_id.fetch_add(1, Ordering::Relaxed)
   }
 }
 
@@ -2257,15 +2262,7 @@ impl Deref for WebviewWrapper {
 impl Drop for WebviewWrapper {
   fn drop(&mut self) {
     if Rc::get_mut(&mut self.inner).is_some() {
-      let mut context_store = self.context_store.lock().unwrap();
-
-      if let Some(web_context) = context_store.get_mut(&self.context_key) {
-        web_context.referenced_by_webviews.remove(&self.label);
-
-        if web_context.referenced_by_webviews.is_empty() {
-          context_store.remove(&self.context_key);
-        }
-      }
+      self.context_store.lock().unwrap().remove(&self.context_key);
     }
   }
 }
@@ -2586,6 +2583,7 @@ impl<T: UserEvent> Wry<T> {
       next_webview_id: Default::default(),
       next_window_event_id: Default::default(),
       next_webview_event_id: Default::default(),
+      next_webcontext_id: Default::default(),
     };
 
     Ok(Self {
@@ -4343,47 +4341,47 @@ fn create_webview<T: UserEvent>(
   let is_first_context = web_context.is_empty();
   // the context must be stored on the HashMap because it must outlive the WebView on macOS
   let automation_enabled = std::env::var("TAURI_WEBVIEW_AUTOMATION").as_deref() == Ok("true");
-  let web_context_key = webview_attributes.data_directory;
+  let web_context_key = // force a unique WebContext when automation is false;
+    // the context must be stored on the HashMap because it must outlive the WebView on macOS
+    if automation_enabled {
+      webview_attributes.data_directory.clone()
+    } else {
+      // unique key
+      let key = context.next_webcontext_id().to_string().into();
+      Some(key)
+    };
   let entry = web_context.entry(web_context_key.clone());
   let web_context = match entry {
-    Occupied(occupied) => {
-      let occupied = occupied.into_mut();
-      occupied.referenced_by_webviews.insert(label.clone());
-      occupied
-    }
+    Occupied(occupied) => occupied.into_mut(),
     Vacant(vacant) => {
-      let mut web_context = WryWebContext::new(web_context_key.clone());
+      let mut web_context = WryWebContext::new(webview_attributes.data_directory);
       web_context.set_allows_automation(if automation_enabled {
         is_first_context
       } else {
         false
       });
-      vacant.insert(WebContext {
-        inner: web_context,
-        referenced_by_webviews: [label.clone()].into(),
-        registered_custom_protocols: HashSet::new(),
-      })
+      vacant.insert(web_context)
     }
   };
 
   for (scheme, protocol) in uri_scheme_protocols {
     // on Linux the custom protocols are associated with the web context
     // and you cannot register a scheme more than once
-    if cfg!(any(
-      target_os = "linux",
-      target_os = "dragonfly",
-      target_os = "freebsd",
-      target_os = "netbsd",
-      target_os = "openbsd"
-    )) {
-      if web_context.registered_custom_protocols.contains(&scheme) {
-        continue;
-      }
+    // if cfg!(any(
+    //   target_os = "linux",
+    //   target_os = "dragonfly",
+    //   target_os = "freebsd",
+    //   target_os = "netbsd",
+    //   target_os = "openbsd"
+    // )) {
+    //   if web_context.registered_custom_protocols.contains(&scheme) {
+    //     continue;
+    //   }
 
-      web_context
-        .registered_custom_protocols
-        .insert(scheme.clone());
-    }
+    //   web_context
+    //     .registered_custom_protocols
+    //     .insert(scheme.clone());
+    // }
 
     webview_builder =
       webview_builder.with_asynchronous_custom_protocol(scheme, move |request, responder| {
@@ -4421,7 +4419,7 @@ fn create_webview<T: UserEvent>(
   }
 
   let webview = webview_builder
-    .with_web_context(&mut web_context.inner)
+    .with_web_context(web_context)
     .build()
     .map_err(|e| Error::CreateWebview(Box::new(e)))?;
 
