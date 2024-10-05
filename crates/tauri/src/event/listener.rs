@@ -288,6 +288,8 @@ impl Listeners {
           .map(|handler| handler.id)
           .collect::<Vec<_>>();
         webview.emit_js(emit_args, &ids)?;
+      } else {
+        println!("No handlers found for event: {}", event);
       }
 
       Ok(())

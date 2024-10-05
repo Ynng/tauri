@@ -1665,7 +1665,7 @@ impl<T: UserEvent> WebviewDispatch<T> for WryWebviewDispatcher<T> {
   #[cfg(not(all(feature = "tracing", not(target_os = "android"))))]
   fn eval_script<S: Into<String>>(&self, script: S) -> Result<()> {
     let script = script.into();
-    println!("eval_script {:?}", script);
+    println!("eval_script");
     send_user_message(
       &self.context,
       Message::Webview(

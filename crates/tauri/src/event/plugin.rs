@@ -14,6 +14,7 @@ use crate::{AppHandle, Emitter, Webview};
 
 use super::{is_event_name_valid, EventTarget};
 
+#[derive(Debug)]
 pub struct EventName(String);
 
 impl Deref for EventName {
@@ -71,6 +72,9 @@ pub fn listen<R: Runtime>(
   target: EventTarget,
   handler: CallbackFn,
 ) -> Result<EventId> {
+  if(event.0 == "message" && webview.label() == "Main") {
+    panic!("setting up {} listener for {}", event.0, webview.label());
+  }
   webview.listen_js(&event, target, handler)
 }
 
