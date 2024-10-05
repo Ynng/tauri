@@ -1320,6 +1320,7 @@ fn main() {
     target: EventTarget,
     handler: CallbackFn,
   ) -> crate::Result<EventId> {
+    println!("listen_js");
     let listeners = self.manager().listeners();
 
     let id = listeners.next_event_id();
@@ -1339,6 +1340,7 @@ fn main() {
 
   /// Unregister a JS event listener.
   pub(crate) fn unlisten_js(&self, event: &str, id: EventId) -> crate::Result<()> {
+    println!("unlisten_js");
     let listeners = self.manager().listeners();
 
     self.eval(&crate::event::unlisten_js_script(
@@ -1353,6 +1355,7 @@ fn main() {
   }
 
   pub(crate) fn emit_js(&self, emit_args: &EmitArgs, ids: &[u32]) -> crate::Result<()> {
+    println!("emit_js");
     self.eval(&crate::event::emit_js_script(
       self.manager().listeners().function_name(),
       emit_args,

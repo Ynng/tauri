@@ -1707,6 +1707,7 @@ impl<R: Runtime> WebviewWindow<R> {
 
   /// Evaluates JavaScript on this window.
   pub fn eval(&self, js: &str) -> crate::Result<()> {
+    println!("evaluating js: {}", js);
     self.webview.eval(js)
   }
 

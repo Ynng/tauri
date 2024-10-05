@@ -198,7 +198,9 @@ pub(crate) fn send_user_message<T: UserEvent>(
   context: &Context<T>,
   message: Message<T>,
 ) -> Result<()> {
-  println!("send_user_message with message {:?}", message);
+  if let Message::Webview(_,_,_) = message {
+    println!("send_user_message with message {:?}", message);
+  }
   if current_thread().id() == context.main_thread_id {
     handle_user_message(
       &context.main_thread.window_target,
@@ -1662,12 +1664,14 @@ impl<T: UserEvent> WebviewDispatch<T> for WryWebviewDispatcher<T> {
 
   #[cfg(not(all(feature = "tracing", not(target_os = "android"))))]
   fn eval_script<S: Into<String>>(&self, script: S) -> Result<()> {
+    let script = script.into();
+    println!("eval_script {:?}", script);
     send_user_message(
       &self.context,
       Message::Webview(
         *self.window_id.lock().unwrap(),
         self.webview_id,
-        WebviewMessage::EvaluateScript(script.into()),
+        WebviewMessage::EvaluateScript(script),
       ),
     )
   }

@@ -278,6 +278,7 @@ impl Listeners {
     I: Iterator<Item = &'a Webview<R>>,
     F: Fn(&EventTarget) -> bool,
   {
+    println!("emit_js_filter");
     let js_listeners = self.inner.js_event_listeners.lock().unwrap();
     webviews.try_for_each(|webview| {
       if let Some(handlers) = js_listeners.get(webview.label()).and_then(|s| s.get(event)) {
